@@ -31,13 +31,15 @@ RUN apt-get update && apt-get install -y \
     libxext6 \
     libxrender1 \
     x11-apps \
+    nano \
+    gedit \
     && rm -rf /var/lib/apt/lists/*
 
 # Step 4: Ensure `python` points to `python3`
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
 # Step 5: Install Python libraries for GUI and web-based interfaces
-RUN pip3 install --no-cache-dir pandas flask streamlit matplotlib PyQt5
+RUN pip3 install --no-cache-dir pandas flask streamlit matplotlib PyQt5 pymysql
 
 # Step 6: Install SnpEff
 RUN mkdir -p /opt/snpeff \
@@ -59,7 +61,21 @@ RUN echo 'alias snpeff="java -jar /opt/snpeff/snpEff/snpEff.jar"' >> ~/.bashrc
 RUN curl -fsSL https://get.nextflow.io | bash \
     && mv nextflow /usr/local/bin/
 
-# Step 10: Verify installations
+# Step 10: Install Prokka
+RUN apt-get update && apt-get install -y \
+    prokka \
+    gffread \
+    emboss \
+    && rm -rf /var/lib/apt/lists/*
+
+# Step 11: Set up Prokka database
+RUN git clone https://github.com/tseemann/prokka.git /opt/prokka_repo && \
+    mkdir -p /root/.local/lib/prokka/db && \
+    cp -r /opt/prokka_repo/db/* /root/.local/lib/prokka/db/ && \
+    prokka --setupdb && \
+    rm -rf /opt/prokka_repo  # Cleanup
+
+# Step 12: Verify installations
 RUN java -version && python3 --version && nextflow -version
 
 # Set working directory inside the container
@@ -68,10 +84,8 @@ WORKDIR /app
 # Copy all application files from the host to the container
 COPY . /app/
 
-
 # Step 13: Expose necessary ports (Flask: 5000, Streamlit: 8501)
 EXPOSE 5000 8501
 
-# Step 14: Default command (change based on GUI type)
+# Step 14: Default command
 CMD ["python3", "gui.py"]
-

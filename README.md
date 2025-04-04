@@ -1,6 +1,6 @@
 **Pu_var**
 
-This tool filters and annotates raw and assembled reads, providing output in VCF and CSV formats.
+This tool filters and annotates raw and assembled reads, providing output in VCF,CSV and database formats.
 
 Follow the user manual to download, install, and run this tool for study purposes.
 
@@ -23,8 +23,6 @@ SnpEff Database:
 Link: https://drive.google.com/drive/folders/1truAY4y1EMY4DOBosNrYlJ67lLu76wGU?usp=sharing
     
 Future Development:
-
-**    Add a process to generate a database file.**
 
 **    Support Windows environments.**
 

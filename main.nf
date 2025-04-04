@@ -12,6 +12,9 @@ params.snpEff_db = ''
 params.chr_name=''
 params.ref_strain = ''
 params.datadir = ''
+params.main_db = ''
+params.new_db = ''
+params.exist_db = ''
 params.output_dir = ''
 params.qual = '20'  
 
@@ -242,7 +245,7 @@ process vcfToCSV {
 
     input:
         path finalnon
-
+ // sed 's/^Chromosome/${params.chr_name}/' $finalnon > ${finalnon}.vcf
     
 
     output:
@@ -297,7 +300,12 @@ process addGenomeId {
     path csv_file
 
     output:
-       path "processed_dir/*.csv"
+       path "processed_dir/*.csv"//   genome_id=$(basename "${csv_file}" | sed -E 's/^([^.]+).*/\1/')
+    //genome_id=\$(basename "${csv_file}" | sed -E 's/^(.*)\\.(fna|fastq).*/\\1/')
+    // # Add genome_id as a column to the CSV file
+   // awk -F',' -v genome_id="\$genome_id" 'BEGIN {OFS=","} {if (NR==1) print "Genome ID", \$0; else print genome_id, \$0}' \\
+       // "${csv_file}" > "\$output_file"
+//genome_id=\$(basename "${csv_file}" | sed -E 's/^([0-9]+\\.[0-9]+|[^.]+).*/\\1/')
 
     script:
     """
@@ -325,12 +333,223 @@ fi
 
 
     """
-   
+     //rename 's/_(\\d+)//g; s/^([^.]+(?:\\.\\d+)?)(?:\\..*)*\\.csv\$/\$1.csv/' *
+       // rename 's/((~ ^_(1|2)\\.fastq_trimmed\\.fastq)|\\.(fna|fastq))\\.sam\\.bam_sorted\\.bam_dedup\\.bam\\.vcf\\.vcf\\.vcf\\.vcf\\.recode\\.vcf\\.vcf\\.genome_id\\.csv\$/\\.csv/' "\$output_file"   //rename 's/^(_[0-9]|[^.]+(?:\\.[0-9]+)?).*/\$1.csv/' *
 
 }
 
 
 
+process runPythonScript {
+    publishDir "./db1_output/", mode: 'copy'
+    debug true
+    input:
+        path db_file
+
+    output:
+         path db_file
+
+    script:
+    """
+#!/usr/bin/env python3
+import os
+import pandas as pd 
+import sqlite3
+
+# Define paths using Nextflow parameters
+database_path = '${params.exist_db}' if '${params.exist_db}' else '${params.new_db}/finalbn_database.db'
+metadata_path = '${params.main_db}'  # Metadata CSV file
+variants_dir = '${params.output_dir}/csvdata/processed_dir' # Directory containing variant CSV files
+
+# Check if the database exists or create a new one
+if os.path.exists(database_path):
+    print(f\"Updating existing database: {database_path}\")
+else:
+    print(f\"Creating a new database: {database_path}\")
+
+# Connect to SQLite database
+conn = sqlite3.connect(database_path)
+cursor = conn.cursor()
+
+# Create strains table
+cursor.execute(\"\"\"
+CREATE TABLE IF NOT EXISTS strains (
+    genome_id TEXT DEFAULT NULL,           
+    sra_accession TEXT DEFAULT NULL,
+    isolation_country TEXT,
+    geographic_group TEXT,
+    taxon_id INTEGER,
+    genome_name TEXT,
+    antibiotic TEXT,
+    resistant_phenotype TEXT,
+    PRIMARY KEY (sra_accession, genome_id, antibiotic)
+);
+\"\"\")
+
+# Create variants table
+cursor.execute(\"\"\"
+CREATE TABLE IF NOT EXISTS variants (
+    genome_id TEXT DEFAULT NULL,
+    sra_accession TEXT DEFAULT NULL,
+    chromosome TEXT,
+    position INTEGER,
+    id TEXT,
+    ref TEXT,
+    alt TEXT,
+    qual REAL,
+    allele TEXT,
+    annotation_type TEXT,
+    annotation_impact TEXT,
+    gene_name TEXT,
+    gene_id TEXT,
+    feature_type TEXT,
+    feature_id TEXT,
+    biotype TEXT,
+    rank TEXT,
+    hgvs_c TEXT,
+    aa_change TEXT,
+    cdna_pos_length TEXT,
+    cds_pos_length TEXT,
+    aa_pos_length TEXT,
+    ref_strain TEXT,
+    hgvs_p TEXT,
+    FOREIGN KEY (sra_accession, genome_id) REFERENCES strains(sra_accession, genome_id)
+);
+\"\"\")
+
+index_queries = [
+    \"CREATE INDEX IF NOT EXISTS idx_isolation_country ON strains (isolation_country);\",
+    \"CREATE INDEX IF NOT EXISTS idx_geographic_group ON strains (geographic_group);\",
+    \"CREATE INDEX IF NOT EXISTS idx_genome_name ON strains (genome_name);\",
+    \"CREATE INDEX IF NOT EXISTS idx_antibiotic ON strains (antibiotic);\",
+    \"CREATE INDEX IF NOT EXISTS idx_resistant_phenotype ON strains (resistant_phenotype);\", 
+    \"CREATE INDEX IF NOT EXISTS idx_gene_name ON variants (gene_name);\",
+    \"CREATE INDEX IF NOT EXISTS idx_country_geo ON strains (isolation_country, geographic_group);\",
+    \"CREATE INDEX IF NOT EXISTS idx_gene_strain ON variants (gene_name, genome_id);\",
+    \"CREATE INDEX IF NOT EXISTS idx_antibiotic_pheno ON strains (antibiotic, resistant_phenotype);\",
+    \"CREATE INDEX IF NOT EXISTS idx_country_geo_full ON strains (isolation_country, geographic_group, antibiotic, resistant_phenotype);\"
+    ]
+
+for query in index_queries:
+    cursor.execute(query)
+
+print(\"Tables and indexes created successfully.\")
+
+# Load the metadata file
+main_data = pd.read_csv(metadata_path, dtype=str)
+print(\"Metadata loaded:\")
+print(main_data.head())
+
+# Process each CSV file in the directory
+for filename in os.listdir(variants_dir):
+    if filename.endswith(\".csv\"):
+        try:
+            print(f\"Processing file: {filename}\")
+
+            # Extract Genome ID or SRA Accession
+           
+        
+          
+            # Determine genome_id and sra_accession
+            if \"SRR\" in filename or \"ERR\" in filename or \"DRR\" in filename:
+                sra_accession = filename.rsplit('.', 1)[0]  # Extract SRA Accession
+                genome_id = None
+            else:
+                genome_id = filename.rsplit('.', 1)[0]  # Extract Genome ID
+                sra_accession = None
+
+           
+
+            print(f\"Extracted genome_id: {genome_id}, sra_accession: {sra_accession}\")
+            print(f\"Extracted genome_id: {sra_accession}, sra_accession: {genome_id}\")
+
+            cursor.execute(\"\"\"
+                SELECT COUNT(*) FROM strains WHERE genome_id = ? OR sra_accession = ?
+            \"\"\", (genome_id, sra_accession))
+            result = cursor.fetchone()
+            if result and result[0] > 0:
+                print(f\" Genome ID {genome_id or sra_accession} already exists. Skipping {genome_id or sra_accession} processing.\")
+                continue
+
+
+            # Load CSV data
+            genome_data = pd.read_csv(
+                os.path.join(variants_dir, filename), on_bad_lines='skip', dtype=str
+            )
+            print(f\"Data from {filename}:\\n\", genome_data.head())
+
+            # Filter metadata for genome_id or sra_accession
+            genome_metadata = main_data[(main_data['Genome ID'].astype(str) == str(genome_id))|(main_data['SRA Accession'].astype(str) == str(sra_accession))]
+            if not genome_metadata.empty:
+                for _, meta_row in genome_metadata.iterrows():
+                    cursor.execute(\"\"\"
+                        INSERT OR IGNORE INTO strains (
+                            genome_id, sra_accession, isolation_country, geographic_group,
+                            taxon_id, genome_name, antibiotic, resistant_phenotype
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    \"\"\", (
+                        genome_id,
+                        sra_accession,
+                        meta_row['Isolation Country'],
+                        meta_row['Geographic Group'],
+                        meta_row['Taxon ID'],
+                        meta_row['Genome Name'],
+                        meta_row['Antibiotic'],
+                        meta_row['Resistant Phenotype']
+                    ))
+                print(f\"Inserted strain data for {genome_id or sra_accession}\")
+
+            # Insert rows into variants table
+            for _, row in genome_data.iterrows():
+                cursor.execute(\"\"\"
+                    INSERT INTO variants (
+                        genome_id, sra_accession, chromosome, position, id, ref, alt, qual, allele, annotation_type,
+                        annotation_impact, gene_name, gene_id, feature_type, feature_id, biotype, rank,
+                        hgvs_c, aa_change, cdna_pos_length, cds_pos_length, aa_pos_length, ref_strain, hgvs_p
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                \"\"\", (
+                    genome_id,
+                    sra_accession,
+                    row.get('Chromosome'),
+                    row.get('Position'),
+                    row.get('ID'),
+                    row.get('REF'),
+                    row.get('ALT'),
+                    row.get('QUAL'),
+                    row.get('Allele'),
+                    row.get('Annotation_Type'),
+                    row.get('Annotation_Impact'),
+                    row.get('Gene_Name'),
+                    row.get('Gene_ID'),
+                    row.get('Feature_Type'),
+                    row.get('Feature_ID'),
+                    row.get('BioType'),
+                    row.get('Rank'),
+                    row.get('HGVS_c'),
+                    row.get('AA_change'),
+                    row.get('cDNA.pos/cDNA.length'),
+                    row.get('CDS.pos/CDS.length'),
+                    row.get('AA.pos/AA.length'),
+                    row.get('Ref_Strain'),
+                    row.get('HGVS_p')
+                ))
+            print(f\"Inserted variant data for: {sra_accession or genome_id}\")
+
+        except Exception as e:
+            print(f\"Error processing {filename}: {e}\")
+
+# Commit changes and close the database connection
+try:
+    conn.commit()
+    print(\"Changes committed to the database.\")
+finally:
+    conn.close()
+    print(\"Database connection closed.\")
+
+
+    """
+}
 
 // fna file workflow
 workflow fna_run {
@@ -387,7 +606,8 @@ workflow single_end_run{
     aa_add(vcfToCSV.out)
     add_aa_name(aa_add.out)
     addGenomeId(add_aa_name.out)
-    
+    addGenomeId.out.collectFile(name: 'collected_csv_files').set { collected_csv_files }
+    runPythonScript(collected_csv_files)
     
     }
 
@@ -419,7 +639,8 @@ workflow pair_end_run{
     aa_add(vcfToCSV.out)
     add_aa_name(aa_add.out)
     addGenomeId(add_aa_name.out)
-    
+    addGenomeId.out.collectFile(name: 'collected_csv_files').set { collected_csv_files }
+    runPythonScript(collected_csv_files)
     
     }
 
@@ -444,7 +665,8 @@ workflow bulk_pair_end_run {
     aa_add(vcfToCSV.out)
     add_aa_name(aa_add.out)
     addGenomeId(add_aa_name.out)
-   
+    addGenomeId.out.collectFile(name: 'collected_csv_files').set { collected_csv_files }
+    runPythonScript(collected_csv_files)
 }
 
 workflow all_in_one_run {
@@ -520,7 +742,8 @@ merged_alignments = Channel.empty()
     aa_add(vcfToCSV.out)
     add_aa_name(aa_add.out)
     addGenomeId(add_aa_name.out)
-    
+    addGenomeId.out.collectFile(name: 'collected_csv_files').set { collected_csv_files }
+    runPythonScript(collected_csv_files)
 }
 
 // Main workflow
@@ -539,3 +762,4 @@ workflow {
         error "Please provide valid paths for the reference genome and input reads."
     }
 }
+

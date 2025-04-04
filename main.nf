@@ -245,9 +245,7 @@ process vcfToCSV {
 
     input:
         path finalnon
- // sed 's/^Chromosome/${params.chr_name}/' $finalnon > ${finalnon}.vcf
     
-
     output:
         path "${finalnon}*.csv"
 
@@ -301,12 +299,7 @@ process addGenomeId {
 
     output:
        path "processed_dir/*.csv"//   genome_id=$(basename "${csv_file}" | sed -E 's/^([^.]+).*/\1/')
-    //genome_id=\$(basename "${csv_file}" | sed -E 's/^(.*)\\.(fna|fastq).*/\\1/')
-    // # Add genome_id as a column to the CSV file
-   // awk -F',' -v genome_id="\$genome_id" 'BEGIN {OFS=","} {if (NR==1) print "Genome ID", \$0; else print genome_id, \$0}' \\
-       // "${csv_file}" > "\$output_file"
-//genome_id=\$(basename "${csv_file}" | sed -E 's/^([0-9]+\\.[0-9]+|[^.]+).*/\\1/')
-
+   
     script:
     """
     
@@ -327,15 +320,10 @@ else
     exit 1
 fi
 
-    # Rename the resulting file to clean up the filename    
-  
-
-
+    # Rename the resulting file to clean up the filename      
 
     """
-     //rename 's/_(\\d+)//g; s/^([^.]+(?:\\.\\d+)?)(?:\\..*)*\\.csv\$/\$1.csv/' *
-       // rename 's/((~ ^_(1|2)\\.fastq_trimmed\\.fastq)|\\.(fna|fastq))\\.sam\\.bam_sorted\\.bam_dedup\\.bam\\.vcf\\.vcf\\.vcf\\.vcf\\.recode\\.vcf\\.vcf\\.genome_id\\.csv\$/\\.csv/' "\$output_file"   //rename 's/^(_[0-9]|[^.]+(?:\\.[0-9]+)?).*/\$1.csv/' *
-
+   
 }
 
 

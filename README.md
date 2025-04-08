@@ -29,7 +29,7 @@ This tool is currently supported only on Linux-based systems.
 
 SnpEff Database:
 
- The preloaded SnpEff database is available only for Pseudomonas aeruginosa.
+ The preloaded SnpEff database is available only for Pseudomonas aeruginosa.Download the files and save them in a single directory.
  If users require a database for any other species, they need to create a new SnpEff database manually.
 Link: https://drive.google.com/drive/folders/1truAY4y1EMY4DOBosNrYlJ67lLu76wGU?usp=sharing
     

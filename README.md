@@ -1,6 +1,17 @@
-**Pu_var**
+**Pa_var_db**
 
-This tool filters and annotates raw and assembled reads, providing output in VCF,CSV and database formats.
+Introduction:
+
+Antimicrobial resistance (AMR) is one of the top global health threats, as stated by the World
+Health Organization (WHO). It leads to resistance against antibiotics, making infections harder
+to treat. Pseudomonas aeruginosa is a major concern in AMR due to its resistance, which makes
+treating infections such as bloodstream infections and respiratory system infections more
+challenging.
+
+To address this issue, there is a need for a variant database that aids in clinical studies, and
+therapeutic research. This tool is designed to create a variant database using FASTA, FASTQ,
+and metadata CSV files. It generates VCF, CSV, and database (DB) files as output and provides a
+web interface for analysis.
 
 Follow the user manual to download, install, and run this tool for study purposes.
 

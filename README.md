@@ -25,7 +25,7 @@ Includes:
    
    ** snpEff **
    
-This tool is currently supported only on Linux-based systems.
+This tool is currently supported both Linux-based Windows-based systems.
 
 SnpEff Database:
 
@@ -35,6 +35,6 @@ Link: https://drive.google.com/drive/folders/1truAY4y1EMY4DOBosNrYlJ67lLu76wGU?u
     
 Future Development:
 
-**    Support Windows environments.**
+**     Large Language model integration.**
 
 The next version will be released soon.

@@ -25,7 +25,7 @@ Includes:
    
    ** snpEff **
    
-This tool is currently supported both Linux-based Windows-based systems.
+This tool is currently supported both Linux-based and Windows-based systems.
 
 SnpEff Database:
 

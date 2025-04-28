@@ -1,1 +1,16 @@
+Visualization Using SQLite
+
+    *Web Interface (for systems where Python3 is available and (with and without) Docker).
+
+    *Use the user manual to host your generated database file with SQLite.
+
+    *A system with a minimum of 8GB RAM is recommended (depending on the database size).
+
+    *SASTRA and Bioinformatics logos are attached to indicate ownership.
+
+    Download all files.
+
+        *The extra .txt files are empty and not mandatory to download.
+
+        *All image files and Python .py files are mandatory to download.
 

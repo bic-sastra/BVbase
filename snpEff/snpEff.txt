@@ -1,1 +1,20 @@
+SnpEff Instructions and Changes:
 
+    Download all files and folders provided and paste them into the correctly named folder (uploaded here).
+
+    Use the user manual for any doubts, installation help, or for creating databases for other species.
+
+    The snpEff.jar file is not uploaded — it will be downloaded automatically if you are using Docker.
+    ➔ It is recommended to use Docker for easier and faster setup.
+
+    After installing SnpEff, delete the original snpEff.config file and replace it with a folders and the provided configuration files. In the new configuration file, locate the line with datadir =     ~(path) and change the path to point to your current SnpEff installation directory.
+
+The directory structure should look like this:
+
+snpeff/
+   ├── cds.fa
+   ├── protein.fa
+   ├── snpeff.conf
+   ├── snpeff.jar
+   └── data/ (folder)
+         ├── [all the given files and folders inside here]

@@ -39,20 +39,19 @@ SnpEff Database:
 project-root/
 
 ├── Docker/
-
-├── gui.py
-├── Docker file
+    ├── gui.py
+    ├── Docker file
 
 ├── Streamlit/
 
 ├── files/
-├── sample1.fastq
-
-├── reference.fasta
-
-├── main.nf      
-
-├── snpEff/   
+    ├── sample1.fastq
+    
+    ├── reference.fasta
+    
+    ├── main.nf      
+    
+    ├── snpEff/   
     └── snpEff.config    
     └── snpEff.jar
     └── data/

@@ -77,3 +77,6 @@ Future Development:
 **     Large Language model integration.**
 
 The next version will be released soon.
+
+**Acknowledgment**
+A heartfelt thank you to Dr. Vigneshwar Ramakrishnan, my guide, for his constant guidance and support throughout the development of this project.

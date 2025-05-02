@@ -24,6 +24,8 @@ Includes:
    ** User manual**
    
    ** snpEff **
+
+   **sqlite**  # Streamlit for Visualization 
    
 This tool is currently supported both Linux-based and Windows-based systems.
 

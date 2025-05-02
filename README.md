@@ -37,38 +37,34 @@ SnpEff Database:
  Directory schema:
 
 project-root/
+├── Docker/
+│   ├── gui.py                     # Python GUI launcher script
+│   └── Dockerfile                 # Docker build file
+│
+├── Streamlit/                     # Streamlit app files (for web interface)
+│
+├── files/                         # Input files and pipeline configuration
+│   ├── sample1.fastq              # Sample FASTQ file
+│   ├── reference.fasta            # Reference genome
+│   ├── main.nf                    # Nextflow pipeline script
+│   └── snpEff/                    # SnpEff configuration and data
+│       ├── snpEff.config
+│       ├── snpEff.jar
+│       └── data/
+│           └── Pseudomonas_aeruginosa/   # Note: underscore for folder name
+│               ├── cds.fa
+│               ├── protein.fa
+│               ├── genes.gff
+│               ├── sequences.fa
+│               ├── sequences.fa.fai
+│               ├── snpEffectPredictor.bin
+│               ├── genes.gtf.bak
+│               └── genes.gtf
+│
+├── output/                        # Output files (VCF, CSV, database, etc.)
+│
+└── usage_manual.pdf               # User manual with instructions
 
-├── Docker/  
-
-   ├── gui.py                   
-   ├── Docker file   
-
-├── Streamlit/    
-
-├── files/                            
-    ├── sample1.fastq
-    
-    ├── reference.fasta
-    
-    ├── main.nf      
-    
-    ├── snpEff/   
-        └── snpEff.config    
-        └── snpEff.jar
-        └── data/
-            └──Pseudomonas aeruginosa /      
-               ├── cds.fa                    
-               ├── protein.fa                    
-               ├── genes.gff                 
-               ├── sequences.fa                    
-               ├── sequences.fa.fai
-               ├── snpEffectPredictor.bin
-               ├── genes.gtf.bak
-               └── genes.gtf
-               
-├── output/   
-
-└── usage_manual.pdf                  # User Manual 
 
     
 Future Development:

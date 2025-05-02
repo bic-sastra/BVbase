@@ -40,9 +40,7 @@ project-root/
 ├── Docker/
 │   ├── gui.py                     # Python GUI launcher script
 │   └── Dockerfile                 # Docker build file
-│
 ├── Streamlit/                     # Streamlit app files (for web interface)
-│
 ├── files/                         # Input files and pipeline configuration
 │   ├── sample1.fastq              # Sample FASTQ file
 │   ├── reference.fasta            # Reference genome
@@ -60,9 +58,7 @@ project-root/
 │               ├── snpEffectPredictor.bin
 │               ├── genes.gtf.bak
 │               └── genes.gtf
-│
 ├── output/                        # Output files (VCF, CSV, database, etc.)
-│
 └── usage_manual.pdf               # User manual with instructions
 
 

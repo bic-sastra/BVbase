@@ -32,6 +32,42 @@ SnpEff Database:
  The preloaded SnpEff database is available only for Pseudomonas aeruginosa.Download the files and save them in a single directory.
  If users require a database for any other species, they need to create a new SnpEff database manually.
 
+ Directory schema:
+
+project-root/
+
+├── Docker/  
+
+   ├── gui.py                   
+   ├── Docker file   
+
+├── Streamlit/    
+
+├── files/                            
+    ├── sample1.fastq
+    
+    ├── reference.fasta
+    
+    ├── main.nf      
+    
+    ├── snpEff/   
+        └── snpEff.config    
+        └── snpEff.jar
+        └── data/
+            └──Pseudomonas aeruginosa /      
+               ├── cds.fa                    
+               ├── protein.fa                    
+               ├── genes.gff                 
+               ├── sequences.fa                    
+               ├── sequences.fa.fai
+               ├── snpEffectPredictor.bin
+               ├── genes.gtf.bak
+               └── genes.gtf
+               
+├── output/   
+
+└── usage_manual.pdf                  # User Manual 
+
     
 Future Development:
 

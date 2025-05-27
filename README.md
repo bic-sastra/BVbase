@@ -13,7 +13,7 @@ therapeutic research. This tool is designed to create a variant database using F
 and metadata CSV files. It generates VCF, CSV, and database (DB) files as output and provides a
 web interface for analysis.
 
-Follow the user manual to download, install, and run this tool for study purposes.
+**Follow the user manual to download, install, and run this tool for study purposes.**
 
 Includes:
 

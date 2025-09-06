@@ -413,10 +413,12 @@ index_queries = [
     \"CREATE INDEX IF NOT EXISTS idx_resistant_phenotype ON strains (resistant_phenotype);\", 
     \"CREATE INDEX IF NOT EXISTS idx_gene_name ON variants (gene_name);\",
     \"CREATE INDEX IF NOT EXISTS idx_country_geo ON strains (isolation_country, geographic_group);\",
+    \"CREATE INDEX IF NOT EXISTS idx_country_geo2 ON strains (geographic_group, isolation_country, antibiotic);\",
+    \"CREATE INDEX IF NOT EXISTS idx_country_geo3 ON strains (geographic_group, resistant_phenotype, antibiotic);\",   
     \"CREATE INDEX IF NOT EXISTS idx_gene_strain ON variants (gene_name, genome_id);\",
     \"CREATE INDEX IF NOT EXISTS idx_antibiotic_pheno ON strains (antibiotic, resistant_phenotype);\",
     \"CREATE INDEX IF NOT EXISTS idx_country_geo_full ON strains (isolation_country, geographic_group, antibiotic, resistant_phenotype);\"
-    ]
+]
 
 for query in index_queries:
     cursor.execute(query)
@@ -434,58 +436,53 @@ for filename in os.listdir(variants_dir):
         try:
             print(f\"Processing file: {filename}\")
 
-            # Extract Genome ID or SRA Accession
-           
-        
-          
             # Determine genome_id and sra_accession
             if \"SRR\" in filename or \"ERR\" in filename or \"DRR\" in filename:
-                sra_accession = filename.rsplit('.', 1)[0]  # Extract SRA Accession
+                sra_accession = filename.rsplit('.', 1)[0]
                 genome_id = None
             else:
-                genome_id = filename.rsplit('.', 1)[0]  # Extract Genome ID
+                genome_id = filename.rsplit('.', 1)[0]
                 sra_accession = None
-
-           
 
             print(f\"Extracted genome_id: {genome_id}, sra_accession: {sra_accession}\")
             print(f\"Extracted genome_id: {sra_accession}, sra_accession: {genome_id}\")
 
+            # --- FIX: only skip strain insertion, not variant processing ---
             cursor.execute(\"\"\"
                 SELECT COUNT(*) FROM strains WHERE genome_id = ? OR sra_accession = ?
             \"\"\", (genome_id, sra_accession))
             result = cursor.fetchone()
-            if result and result[0] > 0:
-                print(f\" Genome ID {genome_id or sra_accession} already exists. Skipping {genome_id or sra_accession} processing.\")
-                continue
 
+            if result and result[0] > 0:
+                print(f\"Strain {genome_id or sra_accession} already exists. Skipping strain insertion, continuing with variants.\")
+            else:
+                # Insert strain only if not exists
+                genome_metadata = main_data[(main_data['Genome ID'].astype(str) == str(genome_id)) | 
+                                            (main_data['SRA Accession'].astype(str) == str(sra_accession))]
+                if not genome_metadata.empty:
+                    for _, meta_row in genome_metadata.iterrows():
+                        cursor.execute(\"\"\"
+                            INSERT OR IGNORE INTO strains (
+                                genome_id, sra_accession, isolation_country, geographic_group,
+                                taxon_id, genome_name, antibiotic, resistant_phenotype
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        \"\"\", (
+                            genome_id,
+                            sra_accession,
+                            meta_row['Isolation Country'],
+                            meta_row['Geographic Group'],
+                            meta_row['Taxon ID'],
+                            meta_row['Genome Name_x'],
+                            meta_row['Antibiotic'],
+                            meta_row['Resistant Phenotype']
+                        ))
+                    print(f\"Inserted strain data for {genome_id or sra_accession}\")
 
             # Load CSV data
             genome_data = pd.read_csv(
                 os.path.join(variants_dir, filename), on_bad_lines='skip', dtype=str
             )
             print(f\"Data from {filename}:\\n\", genome_data.head())
-
-            # Filter metadata for genome_id or sra_accession
-            genome_metadata = main_data[(main_data['Genome ID'].astype(str) == str(genome_id))|(main_data['SRA Accession'].astype(str) == str(sra_accession))]
-            if not genome_metadata.empty:
-                for _, meta_row in genome_metadata.iterrows():
-                    cursor.execute(\"\"\"
-                        INSERT OR IGNORE INTO strains (
-                            genome_id, sra_accession, isolation_country, geographic_group,
-                            taxon_id, genome_name, antibiotic, resistant_phenotype
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    \"\"\", (
-                        genome_id,
-                        sra_accession,
-                        meta_row['Isolation Country'],
-                        meta_row['Geographic Group'],
-                        meta_row['Taxon ID'],
-                        meta_row['Genome Name'],
-                        meta_row['Antibiotic'],
-                        meta_row['Resistant Phenotype']
-                    ))
-                print(f\"Inserted strain data for {genome_id or sra_accession}\")
 
             # Insert rows into variants table
             for _, row in genome_data.iterrows():
